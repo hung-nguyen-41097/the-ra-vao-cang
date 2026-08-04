@@ -138,14 +138,14 @@ async function fetchImageBuffer(link) {
 
 // Build the exact {id}/{hoten}/... object the motorbike template needs
 // for one card.
-async function buildMotorbikeCard(row, index, startRow = 2) {
+async function buildMotorbikeCard(row, index, startRow = 1) {
   const [qrCode, idphoto] = await Promise.all([
     fetchQRCodeBuffer(row.qrCode),
     fetchImageBuffer(row.idPhotoLink),
   ]);
   let startRowNum = Number.parseInt(startRow, 10);
   return {
-    id: String(startRowNum + index).padStart(2, "0"),
+    id: String(startRowNum + index - 1).padStart(2, "0"),
     hoten: row.hoten,
     cccd: row.cccd,
     chucvu: row.chucvu,
@@ -160,11 +160,11 @@ async function buildMotorbikeCard(row, index, startRow = 2) {
 // Build the exact {id}/{phone}/{hieuxe}/{so xe}/{donvi}/{ngày} object
 // the car template needs for one card. Note the literal-space and
 // diacritic keys — they must match the template exactly.
-async function buildCarCard(row, index, startRow = 2) {
+async function buildCarCard(row, index, startRow = 1) {
   const [qrCode] = await Promise.all([fetchQRCodeBuffer(row.qrCode)]);
   let startRowNum = Number.parseInt(startRow, 10);
   return {
-    id: String(startRowNum + index).padStart(2, "0"),
+    id: String(startRowNum + index).padStart(1, "0"),
     phone: row.sdt,
     hieuxe: row.hieuxe,
     soxe: row.soxe,
@@ -185,8 +185,8 @@ function App() {
     car: defaultCarData.join("\n"),
   });
   const [excelStartRow, setExcelStartRow] = useState({
-    motorbike: 2,
-    car: 2,
+    motorbike: 1,
+    car: 1,
   });
   const [loading, setLoading] = useState({ motorbike: false, car: false });
   const fileInputRef = useRef(null);
@@ -195,10 +195,6 @@ function App() {
 
   const setTabText = (tab, text) =>
     setDataText((prev) => ({ ...prev, [tab]: text }));
-
-  // -------------------------------------------------------------------
-  // Word generation
-  // -------------------------------------------------------------------
 
   const generateDocument = async (type) => {
     const cfg = VEHICLE_CONFIG[type];
@@ -277,10 +273,6 @@ function App() {
     }
   };
 
-  // -------------------------------------------------------------------
-  // Live HTML card preview (per active tab)
-  // -------------------------------------------------------------------
-
   const escapeHtml = (text) => {
     const div = document.createElement("div");
     div.textContent = text;
@@ -349,10 +341,6 @@ function App() {
       '<p style="text-align:center;color:#999;padding:40px;">Không có dữ liệu để tạo thẻ.</p>'
     );
   };
-
-  // -------------------------------------------------------------------
-  // Toolbar handlers
-  // -------------------------------------------------------------------
 
   const loadSampleData = () => {
     setDataText({
@@ -429,8 +417,8 @@ function App() {
 
           const formattedRows = [];
           const startRow = Math.max(
-            2,
-            Number.parseInt(excelStartRow[type], 10) || 2,
+            1,
+            Number.parseInt(excelStartRow[type], 10) || 1,
           );
           for (let i = startRow - 1; i < rows.length; i++) {
             const row = rows[i];
@@ -464,15 +452,7 @@ function App() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const cardsHtml = generateCardsHtml(dataText[activeTab], activeTab, config);
-
-  // -------------------------------------------------------------------
-  // Render
-  // -------------------------------------------------------------------
 
   return (
     <div className="container">
@@ -524,11 +504,7 @@ function App() {
         >
           {loading[activeTab]
             ? "Đang tạo..."
-            : `📄 Xuất Word - ${config.label}`}
-        </button>
-
-        <button className="btn btn-print" onClick={handlePrint}>
-          🖨️ In Trực Tiếp
+            : `📄 Xuất File Word - ${config.label}`}
         </button>
       </div>
 
@@ -539,7 +515,7 @@ function App() {
             <input
               id="motorbikeStartRow"
               type="number"
-              min="2"
+              min="1"
               step="1"
               value={excelStartRow.motorbike}
               onChange={(e) =>
@@ -549,7 +525,7 @@ function App() {
                 }))
               }
             />
-            <small>Mặc định: 2</small>
+            <small>Mặc định: 1</small>
           </label>
 
           <label className="row-start-field" htmlFor="carStartRow">
@@ -557,7 +533,7 @@ function App() {
             <input
               id="carStartRow"
               type="number"
-              min="2"
+              min="1"
               step="1"
               value={excelStartRow.car}
               onChange={(e) =>
@@ -567,7 +543,7 @@ function App() {
                 }))
               }
             />
-            <small>Mặc định: 2</small>
+            <small>Mặc định: 1</small>
           </label>
         </div>
       </section>
