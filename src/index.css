@@ -1,0 +1,356 @@
+/* ===== RESET & BASE ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f6f9;
+  padding: 20px;
+  color: #333;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===== HEADER ===== */
+.app-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.app-header h1 {
+  color: #004080;
+  font-size: 24px;
+}
+
+.badge {
+  background: #004080;
+  color: #fff;
+  font-size: 14px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-left: 6px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* ===== TOOLBAR ===== */
+.toolbar {
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.2s;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn-sample {
+  background-color: #f0ad4e;
+  color: white;
+}
+.btn-excel {
+  background-color: #0275d8;
+  color: white;
+}
+.btn-template {
+  background-color: #5bc0de;
+  color: white;
+}
+.btn-generate {
+  background-color: #0275d8;
+  color: white;
+}
+.btn-print {
+  background-color: #5cb85c;
+  color: white;
+}
+
+.btn-excel input[type="file"] {
+  display: none;
+}
+
+/* ===== DATA TEXTAREA ===== */
+.data-section {
+  margin-bottom: 20px;
+}
+
+#dataPreview {
+  width: 100%;
+  height: 100px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* ===== CARDS GRID ===== */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 15px;
+}
+
+/* ===== INDIVIDUAL CARD ===== */
+.card {
+  background: #fff;
+  border: 2px solid #004080;
+  border-radius: 8px;
+  width: 310px;
+  height: 185px;
+  padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+}
+
+.card-header {
+  text-align: center;
+  border-bottom: 1.5px solid #004080;
+  padding-bottom: 3px;
+}
+
+.card-header h4 {
+  margin: 0;
+  color: #004080;
+  font-size: 14px;
+}
+
+.card-header span {
+  font-size: 9px;
+  font-weight: bold;
+  color: #555;
+  letter-spacing: 1px;
+}
+
+.card-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qr-box img {
+  width: 70px;
+  height: 70px;
+  display: block;
+}
+
+.info-box {
+  font-size: 11px;
+  line-height: 1.35;
+  flex-grow: 1;
+}
+
+.info-box table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.info-box td {
+  padding: 1px 0;
+}
+
+.info-box td:first-child {
+  font-weight: bold;
+  color: #333;
+  width: 50px;
+}
+
+.card-footer {
+  text-align: center;
+  font-size: 8.5px;
+  color: #666;
+  border-top: 1px dashed #ccc;
+  padding-top: 2px;
+}
+
+/* ===== PRINT OPTIMIZATION (A4) ===== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  body {
+    background: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .toolbar,
+  .data-section,
+  .app-header,
+  .subtitle {
+    display: none !important;
+  }
+
+  .cards-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8mm;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    box-shadow: none;
+    border: 2px solid #000;
+    margin: 0;
+  }
+}
+
+.tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  background: #f3f4f6;
+  border-radius: 14px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.tab-btn {
+  position: relative;
+  padding: 10px 22px;
+  border: none;
+  outline: none;
+  background: transparent;
+  border-radius: 10px;
+  color: #6b7280;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.tab-btn:hover {
+  color: #111827;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.tab-btn.active {
+  background: #2563eb;
+  color: #fff;
+  box-shadow:
+    0 4px 12px rgba(37, 99, 235, 0.3),
+    0 2px 6px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.tab-btn:active {
+  transform: scale(0.98);
+}
+
+.tab-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.data-section {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.row-start-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.row-start-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row-start-field span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.row-start-field input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.row-start-field input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.row-start-field small {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+@media (max-width: 640px) {
+  .data-section {
+    padding: 16px;
+  }
+
+  .row-start-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
