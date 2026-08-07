@@ -114,6 +114,62 @@ function buildGoogleDriveImageUrls(link) {
   ];
 }
 
+async function fitImageToCanvas(
+  imageBuffer,
+  targetWidth = 65,
+  targetHeight = 65,
+  mode = "fit", // "fit" or "fill"
+) {
+  const blob = new Blob([imageBuffer]);
+  const url = URL.createObjectURL(blob);
+
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = url;
+    });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+
+    const ctx = canvas.getContext("2d");
+
+    // White background
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+    let scale;
+
+    if (mode === "fill") {
+      // Word -> Crop -> Fill
+      scale = Math.max(targetWidth / img.width, targetHeight / img.height);
+    } else {
+      // Word -> Crop -> Fit
+      scale = Math.min(targetWidth / img.width, targetHeight / img.height);
+    }
+
+    const drawWidth = img.width * scale;
+    const drawHeight = img.height * scale;
+
+    const x = (targetWidth - drawWidth) / 2;
+    const y = (targetHeight - drawHeight) / 2;
+
+    ctx.drawImage(img, x, y, drawWidth, drawHeight);
+
+    const outputBlob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/png"),
+    );
+
+    return await outputBlob.arrayBuffer();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 async function fetchImageBuffer(link) {
   if (!link) return EMPTY_PNG_BUFFER;
 
@@ -127,7 +183,11 @@ async function fetchImageBuffer(link) {
     try {
       const response = await fetch(candidate);
       if (!response.ok) continue;
-      return await response.arrayBuffer();
+      const originalBuffer = await response.arrayBuffer();
+
+      // "fit" = Word Crop -> Fit
+      // "fill" = Word Crop -> Fill
+      return await fitImageToCanvas(originalBuffer, 65, 65, "fit");
     } catch {
       // Try next candidate URL.
     }

@@ -149,6 +149,7 @@ export default function V2Page() {
 
       if (vehicleType === "motorbike") {
         const portraitIndex = buildPortraitIndex(portraitFiles);
+        console.log("Portrait Index:", portraitIndex);
         cards = await Promise.all(
           rows.map((row, index) =>
             buildMotorbikeCard(row, index, startRow, portraitIndex),
@@ -388,6 +389,8 @@ export default function V2Page() {
     return name
       .normalize("NFD")
       .replace(/\p{Diacritic}/gu, "")
+      .replace(/đ/g, "d")
+      .replace(/Đ/g, "D")
       .toLowerCase()
       .trim();
   }
@@ -395,7 +398,7 @@ export default function V2Page() {
   function buildPortraitIndex(portraitFiles) {
     return portraitFiles
       .map((file) => {
-        const match = file.name.match(/^(\d+)\.\s*(.+?)\s+\S+\.[^.]+$/);
+        const match = file.name.match(/^(\d+)\.\s*(.+)\.[^.]+$/);
 
         return {
           index: match ? Number(match[1]) : Number.MAX_SAFE_INTEGER,
