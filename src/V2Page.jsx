@@ -125,8 +125,23 @@ export default function V2Page() {
     }
   }, [activeStep, maxSteps]);
 
-  const handleNext = () => setActiveStep((prev) => prev + 1);
-  const handleBack = () => setActiveStep((prev) => prev - 1);
+  const handleNext = () =>
+    setActiveStep((prev) => {
+      if (prev === 1 && vehicleType === "car") {
+        return 3;
+      }
+
+      return Math.min(prev + 1, maxSteps - 1);
+    });
+
+  const handleBack = () =>
+    setActiveStep((prev) => {
+      if (prev === 3 && vehicleType === "car") {
+        return 1;
+      }
+
+      return Math.max(prev - 1, 0);
+    });
 
   const handleExcelChange = (e) => {
     const file = e.target.files?.[0] || null;
@@ -207,9 +222,10 @@ export default function V2Page() {
 
   const canGoNext = React.useMemo(() => {
     if (activeStep === 0) return !!excelFile;
-    if (activeStep === 2) return portraitFiles.length > 0;
+    if (activeStep === 2)
+      return portraitFiles.length > 0 || vehicleType === "car";
     return true;
-  }, [activeStep, excelFile, portraitFiles]);
+  }, [activeStep, excelFile, portraitFiles, vehicleType]);
 
   // ---- Step content -------------------------------------------------
   const renderStepContent = () => {
@@ -226,7 +242,7 @@ export default function V2Page() {
                 borderRadius: 2,
               }}
             >
-              Chọn file Excel
+              Chọn file Excel (Mau_The_Ra_Vao_PSB)
               <input
                 hidden
                 type="file"
@@ -295,10 +311,14 @@ export default function V2Page() {
         );
 
       case 2:
+        if (vehicleType === "car") {
+          return null;
+        }
+
         return (
           <Stack spacing={2}>
             <Button variant="outlined" component="label">
-              Hãy chọn thư mục ảnh thẻ
+              Hãy chọn thư mục ảnh thẻ chân dung
               <input
                 type="file"
                 hidden
