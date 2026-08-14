@@ -27,7 +27,7 @@ import PizZip from "pizzip";
 import { saveAs } from "file-saver";
 import ImageModule from "docxtemplater-image-module-free";
 
-const IMAGE_EXTENSIONS = /\.(png|jpe?g|webp|bmp|gif)$/i;
+const IMAGE_EXTENSIONS = /\.(png|jpe?g|jfif|webp|bmp|gif)$/i;
 
 const steps = [
   {
