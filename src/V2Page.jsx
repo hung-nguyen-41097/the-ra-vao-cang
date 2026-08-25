@@ -187,7 +187,7 @@ export default function V2Page() {
       return;
     }
 
-    setEndRow(String(Math.max(parsedValue, getStartRowNumber())));
+    setEndRow(String(parsedValue));
   };
 
   const handleGenerate = async () => {
@@ -326,7 +326,7 @@ export default function V2Page() {
                 size="small"
                 value={startRow}
                 onChange={handleStartRowChange}
-                inputProps={{ min: 1 }}
+                slotProps={{ htmlInput: { min: 1 } }}
                 sx={{ width: 260 }}
               />
               <TextField
@@ -413,7 +413,7 @@ export default function V2Page() {
               Tạo file Word
             </Button>
             {generated && (
-              <Stack direction="row" spacing={1} alignItems="center">
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <CheckCircleIcon color="success" fontSize="small" />
                 <Typography variant="body2">Hoàn thành!</Typography>
               </Stack>
@@ -626,7 +626,7 @@ export default function V2Page() {
           <Box sx={{ flex: 1 }}>{renderStepContent()}</Box>
           <Divider sx={{ my: 4 }} />
 
-          <Stack direction="row" justifyContent="space-between">
+          <Stack direction="row" sx={{ justifyContent: "space-between" }}>
             <Button
               startIcon={<KeyboardArrowLeft />}
               onClick={handleBack}
