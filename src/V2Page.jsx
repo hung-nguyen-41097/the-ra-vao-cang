@@ -103,7 +103,8 @@ export default function V2Page() {
 
   // ---- Wizard state -----------------------------------------------
   const [excelFile, setExcelFile] = React.useState(null);
-  const [startRow, setStartRow] = React.useState(2);
+  const [startRow, setStartRow] = React.useState("2");
+  const [endRow, setEndRow] = React.useState("");
   const [vehicleType, setVehicleType] = React.useState("motorbike");
   const [portraitFiles, setPortraitFiles] = React.useState([]);
   const [outputFilename, setOutputFilename] = React.useState("The_Ra_Vao_Cang");
@@ -156,9 +157,49 @@ export default function V2Page() {
     setPortraitFiles(images);
   };
 
+  const getStartRowNumber = () =>
+    Math.max(1, Number.parseInt(startRow, 10) || 1);
+
+  const handleStartRowChange = (e) => {
+    const value = e.target.value;
+
+    if (value === "") {
+      setStartRow("");
+      return;
+    }
+
+    const nextStartRow = Math.max(1, Number.parseInt(value, 10) || 1);
+    setStartRow(String(nextStartRow));
+  };
+
+  const handleEndRowChange = (e) => {
+    const value = e.target.value;
+
+    if (value === "") {
+      setEndRow("");
+      return;
+    }
+
+    const parsedValue = Number(value);
+
+    if (!parsedValue) {
+      setEndRow("");
+      return;
+    }
+
+    setEndRow(String(Math.max(parsedValue, getStartRowNumber())));
+  };
+
   const handleGenerate = async () => {
     try {
-      const rows = await readExcelFile(excelFile, vehicleType, startRow);
+      const rows = await readExcelFile(
+        excelFile,
+        vehicleType,
+        getStartRowNumber(),
+        endRow,
+      );
+
+      const startRowNumber = getStartRowNumber();
 
       let cards;
 
@@ -167,14 +208,14 @@ export default function V2Page() {
         console.log("Portrait Index:", portraitIndex);
         cards = await Promise.all(
           rows.map((row, index) =>
-            buildMotorbikeCard(row, index, startRow, portraitIndex),
+            buildMotorbikeCard(row, index, startRowNumber, portraitIndex),
           ),
         );
 
         console.log(cards);
       } else {
         cards = await Promise.all(
-          rows.map((row, index) => buildCarCard(row, index, startRow)),
+          rows.map((row, index) => buildCarCard(row, index, startRowNumber)),
         );
       }
 
@@ -278,15 +319,25 @@ export default function V2Page() {
               paddingLeft: "50px",
             }}
           >
-            <TextField
-              label="Bắt đầu lấy dữ liệu từ dòng số:"
-              type="number"
-              size="small"
-              value={startRow}
-              onChange={(e) => setStartRow(Number(e.target.value) || 1)}
-              inputProps={{ min: 1 }}
-              sx={{ maxWidth: 260 }}
-            />
+            <Stack direction="row" spacing={2}>
+              <TextField
+                label="Bắt đầu lấy dữ liệu từ dòng số:"
+                type="number"
+                size="small"
+                value={startRow}
+                onChange={handleStartRowChange}
+                inputProps={{ min: 1 }}
+                sx={{ width: 260 }}
+              />
+              <TextField
+                label="Kết thúc ở dòng số:"
+                type="number"
+                size="small"
+                value={endRow}
+                onChange={handleEndRowChange}
+                sx={{ width: 260 }}
+              />
+            </Stack>
             <Box>
               <Typography variant="subtitle2" gutterBottom>
                 Loại phương tiện
@@ -429,7 +480,7 @@ export default function V2Page() {
       .sort((a, b) => a.index - b.index);
   }
 
-  async function readExcelFile(file, vehicleType, startRow) {
+  async function readExcelFile(file, vehicleType, startRow, endRow) {
     const data = await file.arrayBuffer();
 
     const workbook = XLSX.read(data, {
@@ -449,9 +500,18 @@ export default function V2Page() {
       header: 1,
     });
 
+    const endRowNumber =
+      endRow === "" || endRow == null
+        ? rows.length
+        : Number.parseInt(endRow, 10);
+
+    if (endRowNumber < startRow) {
+      throw new Error("Dòng kết thúc phải lớn hơn hoặc bằng dòng bắt đầu");
+    }
+
     const result = [];
 
-    for (let i = startRow - 1; i < rows.length; i++) {
+    for (let i = startRow - 1; i < rows.length && i <= endRowNumber - 1; i++) {
       const row = rows[i];
 
       if (!row) continue;

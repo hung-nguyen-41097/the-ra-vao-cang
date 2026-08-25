@@ -10,6 +10,8 @@ body {
   background-color: #f4f6f9;
   padding: 20px;
   color: #333;
+  margin: 0;
+  min-height: 100vh;
 }
 
 .container {
@@ -29,18 +31,19 @@ body {
 }
 
 .badge {
-  background: #004080;
-  color: #fff;
+  background: #ffffff;
+  color: #004080;
   font-size: 14px;
   padding: 2px 10px;
   border-radius: 20px;
   display: inline-block;
   margin-left: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 .subtitle {
   font-size: 13px;
-  color: #666;
+  color: #004080;
   margin-top: 4px;
 }
 
