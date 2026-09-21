@@ -21,15 +21,28 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import SettingsIcon from "@mui/icons-material/Settings";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import DescriptionIcon from "@mui/icons-material/Description";
+import PhotoSizeSelectLargeIcon from "@mui/icons-material/PhotoSizeSelectLarge";
+import LinearProgress from "@mui/material/LinearProgress";
 import * as XLSX from "xlsx";
 import Docxtemplater from "docxtemplater";
 import PizZip from "pizzip";
+import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import ImageModule from "docxtemplater-image-module-free";
 
 const IMAGE_EXTENSIONS = /\.(png|jpe?g|jfif|webp|bmp|gif)$/i;
 
+// Mirrors image-optimizer/optimize.js: portraits only ever get embedded at
+// 65x65 or 120x120 in the exported Word docs, so anything beyond
+// print-quality resolution is wasted memory.
+const OPTIMIZE_MAX_DIMENSION = 800;
+const OPTIMIZE_JPEG_QUALITY = 0.8;
+
 const steps = [
+  {
+    label: "Tối ưu ảnh",
+    icon: <PhotoSizeSelectLargeIcon />,
+  },
   {
     label: "Nhập File Excel",
     icon: <UploadFileIcon />,
@@ -110,6 +123,12 @@ export default function V2Page() {
   const [outputFilename, setOutputFilename] = React.useState("The_Ra_Vao_Cang");
   const [generated, setGenerated] = React.useState(false);
 
+  // ---- Image optimization state ------------------------------------
+  const [imagesToOptimize, setImagesToOptimize] = React.useState([]);
+  const [isOptimizing, setIsOptimizing] = React.useState(false);
+  const [optimizeProgress, setOptimizeProgress] = React.useState(0);
+  const [optimizeSummary, setOptimizeSummary] = React.useState(null);
+
   const nextButtonRef = React.useRef(null);
   const backButtonRef = React.useRef(null);
   const previousActiveStepRef = React.useRef(activeStep);
@@ -128,8 +147,8 @@ export default function V2Page() {
 
   const handleNext = () =>
     setActiveStep((prev) => {
-      if (prev === 1 && vehicleType === "car") {
-        return 3;
+      if (prev === 2 && vehicleType === "car") {
+        return 4;
       }
 
       return Math.min(prev + 1, maxSteps - 1);
@@ -137,8 +156,8 @@ export default function V2Page() {
 
   const handleBack = () =>
     setActiveStep((prev) => {
-      if (prev === 3 && vehicleType === "car") {
-        return 1;
+      if (prev === 4 && vehicleType === "car") {
+        return 2;
       }
 
       return Math.max(prev - 1, 0);
@@ -155,6 +174,58 @@ export default function V2Page() {
     );
 
     setPortraitFiles(images);
+  };
+
+  const handleOptimizeFolderChange = (e) => {
+    const images = Array.from(e.target.files || []).filter((file) =>
+      IMAGE_EXTENSIONS.test(file.name),
+    );
+
+    setImagesToOptimize(images);
+    setOptimizeSummary(null);
+  };
+
+  const handleOptimizeAndDownload = async () => {
+    if (imagesToOptimize.length === 0) return;
+
+    setIsOptimizing(true);
+    setOptimizeProgress(0);
+    setOptimizeSummary(null);
+
+    try {
+      const zip = new JSZip();
+      let totalBefore = 0;
+      let totalAfter = 0;
+
+      for (let i = 0; i < imagesToOptimize.length; i++) {
+        const file = imagesToOptimize[i];
+        const { blob } = await optimizeImageFile(file);
+
+        const baseName = file.name.replace(/\.[^.]+$/, "");
+        zip.file(`${baseName}.jpg`, blob);
+
+        totalBefore += file.size;
+        totalAfter += blob.size;
+        setOptimizeProgress(i + 1);
+      }
+
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const inputFolderName = getInputFolderName(imagesToOptimize[0]);
+      const zipFilename = `${inputFolderName}.zip`;
+      saveAs(zipBlob, zipFilename);
+
+      setOptimizeSummary({
+        count: imagesToOptimize.length,
+        totalBefore,
+        totalAfter,
+        zipFilename,
+      });
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setIsOptimizing(false);
+    }
   };
 
   const getStartRowNumber = () =>
@@ -262,8 +333,8 @@ export default function V2Page() {
   };
 
   const canGoNext = React.useMemo(() => {
-    if (activeStep === 0) return !!excelFile;
-    if (activeStep === 2)
+    if (activeStep === 1) return !!excelFile;
+    if (activeStep === 3)
       return portraitFiles.length > 0 || vehicleType === "car";
     return true;
   }, [activeStep, excelFile, portraitFiles, vehicleType]);
@@ -272,6 +343,89 @@ export default function V2Page() {
   const renderStepContent = () => {
     switch (activeStep) {
       case 0:
+        return (
+          <Stack spacing={2}>
+            <Button variant="outlined" component="label">
+              Hãy chọn thư mục ảnh cần tối ưu
+              <input
+                type="file"
+                hidden
+                webkitdirectory="true"
+                directory="true"
+                multiple
+                onChange={handleOptimizeFolderChange}
+              />
+            </Button>
+
+            {imagesToOptimize.length > 0 && (
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                }}
+              >
+                <Typography fontWeight={600}>
+                  {imagesToOptimize.length.toLocaleString()} ảnh
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Ảnh sẽ được thu nhỏ tối đa {OPTIMIZE_MAX_DIMENSION}px và nén
+                  JPEG chất lượng {Math.round(OPTIMIZE_JPEG_QUALITY * 100)}%.
+                </Typography>
+              </Paper>
+            )}
+
+            <Button
+              variant="contained"
+              disabled={imagesToOptimize.length === 0 || isOptimizing}
+              onClick={handleOptimizeAndDownload}
+            >
+              {isOptimizing
+                ? `Đang tối ưu ${optimizeProgress}/${imagesToOptimize.length}...`
+                : "Tối ưu & Tải xuống (.zip)"}
+            </Button>
+
+            {isOptimizing && (
+              <LinearProgress
+                variant="determinate"
+                value={
+                  imagesToOptimize.length
+                    ? (optimizeProgress / imagesToOptimize.length) * 100
+                    : 0
+                }
+              />
+            )}
+
+            {optimizeSummary && (
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  borderRadius: 2,
+                  bgcolor: "success.50",
+                }}
+              >
+                <CheckCircleIcon color="success" />
+                <Typography variant="body2">
+                  Đã tối ưu {optimizeSummary.count} ảnh:{" "}
+                  {(optimizeSummary.totalBefore / 1024 / 1024).toFixed(2)}MB
+                  {" -> "}
+                  {(optimizeSummary.totalAfter / 1024 / 1024).toFixed(2)}MB (-
+                  {(
+                    100 *
+                    (1 - optimizeSummary.totalAfter / optimizeSummary.totalBefore)
+                  ).toFixed(1)}
+                  %). File {optimizeSummary.zipFilename} đã được tải xuống.
+                </Typography>
+              </Paper>
+            )}
+          </Stack>
+        );
+
+      case 1:
         return (
           <Stack spacing={2}>
             <Button
@@ -310,7 +464,7 @@ export default function V2Page() {
           </Stack>
         );
 
-      case 1:
+      case 2:
         return (
           <Stack
             spacing={2}
@@ -361,7 +515,7 @@ export default function V2Page() {
           </Stack>
         );
 
-      case 2:
+      case 3:
         if (vehicleType === "car") {
           return null;
         }
@@ -399,7 +553,7 @@ export default function V2Page() {
           </Stack>
         );
 
-      case 3:
+      case 4:
         return (
           <Stack spacing={3}>
             <TextField
@@ -454,6 +608,37 @@ export default function V2Page() {
     }
 
     return await portrait.file.arrayBuffer();
+  }
+
+  function getInputFolderName(file) {
+    const relativePath = file.webkitRelativePath || "";
+    const folderName = relativePath.split("/")[0];
+    return folderName || "anh-toi-uu";
+  }
+
+  async function optimizeImageFile(file) {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+
+    let { width, height } = bitmap;
+    if (width > OPTIMIZE_MAX_DIMENSION || height > OPTIMIZE_MAX_DIMENSION) {
+      const scale = OPTIMIZE_MAX_DIMENSION / Math.max(width, height);
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close?.();
+
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", OPTIMIZE_JPEG_QUALITY),
+    );
+
+    return { blob };
   }
 
   function normalizeName(name) {
