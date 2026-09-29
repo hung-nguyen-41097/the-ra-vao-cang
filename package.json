@@ -17,6 +17,7 @@
     "docx": "^9.7.1",
     "docxtemplater": "^3.69.3",
     "docxtemplater-image-module-free": "^1.1.1",
+    "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.2",
     "pdfjs-dist": "^6.3.289",
