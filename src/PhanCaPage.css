@@ -162,14 +162,11 @@
 .pc-chip {
   width: 12px;
   height: 12px;
+  border: 1px solid #9ca3af;
   border-radius: 3px;
   display: inline-block;
+  background: #fff;
 }
-
-.pc-s-S, .pc-chip.pc-s-S { background: #3b82f6; }
-.pc-s-C, .pc-chip.pc-s-C { background: #f59e0b; }
-.pc-s-D, .pc-chip.pc-s-D { background: #7c3aed; }
-.pc-s-O, .pc-chip.pc-s-O { background: #10b981; }
 
 /* ===== Grid ===== */
 .pc-grid-wrap {
@@ -182,12 +179,12 @@
 
 .pc-grid {
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
 .pc-grid th, .pc-grid td {
-  border: 1px solid #eef0f3;
+  border: 1px solid #94a3b8;
   padding: 4px 6px;
   text-align: center;
 }
@@ -203,7 +200,7 @@
 
 .pc-grid thead th span {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
   color: #9ca3af;
 }
@@ -219,33 +216,28 @@ thead .pc-sticky { z-index: 3; }
 .pc-c-no { left: 0; width: 32px; }
 .pc-c-name { left: 32px; width: 160px; text-align: left !important; }
 
-.pc-c-name b { display: block; font-size: 12px; }
-.pc-c-name em { display: block; font-size: 10px; color: #9ca3af; font-style: normal; }
+.pc-c-name b { display: block; font-size: 13px; }
+.pc-c-name em { display: block; font-size: 11px; color: #9ca3af; font-style: normal; }
 
-.pc-first { border-left: 2px solid #cbd5e1; }
-.pc-wknd { background: rgba(245, 158, 11, 0.08); }
+.pc-first { border-left: 3px solid #475569; }
+.pc-wknd { background: rgba(245, 158, 11, 0.28); font-weight: 700; color: #92400e; }
 
 .pc-sum { font-weight: 700; color: #374151; background: #f8fafc; }
 
 .pc-cell {
   border: none;
-  border-radius: 5px;
+  border-radius: 0;
   padding: 3px 6px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 400;
   cursor: pointer;
   min-width: 40px;
   color: #1f2937;
-  background: #f3f4f6;
+  background: transparent;
 }
 
 td .pc-cell { cursor: default; }
 tbody td:not(.pc-sticky) .pc-cell { cursor: pointer; }
-
-.pc-cell.pc-s-S { background: rgba(59, 130, 246, 0.18); color: #1d4ed8; }
-.pc-cell.pc-s-C { background: rgba(245, 158, 11, 0.18); color: #b45309; }
-.pc-cell.pc-s-D { background: rgba(124, 58, 237, 0.18); color: #6d28d9; }
-.pc-cell.pc-s-O { background: rgba(16, 185, 129, 0.18); color: #047857; }
 
 .pc-cell.pc-pinned {
   outline: 2px solid #111827;
@@ -284,20 +276,17 @@ tbody td:not(.pc-sticky) .pc-cell { cursor: pointer; }
 }
 
 .pc-opt {
-  border: none;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  background: #f3f4f6;
+  background: #fff;
   color: #1f2937;
 }
 
-.pc-opt.pc-s-S { background: rgba(59, 130, 246, 0.18); color: #1d4ed8; }
-.pc-opt.pc-s-C { background: rgba(245, 158, 11, 0.18); color: #b45309; }
-.pc-opt.pc-s-D { background: rgba(124, 58, 237, 0.18); color: #6d28d9; }
-.pc-opt.pc-s-O { background: rgba(16, 185, 129, 0.18); color: #047857; }
+.pc-opt:hover { background: #f3f4f6; }
 
 .pc-unpin {
   margin-top: 8px;

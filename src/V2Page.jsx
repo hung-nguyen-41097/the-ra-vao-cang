@@ -196,30 +196,37 @@ export default function V2Page() {
       const zip = new JSZip();
       let totalBefore = 0;
       let totalAfter = 0;
+      let count = 0;
+      const failed = [];
 
       for (let i = 0; i < imagesToOptimize.length; i++) {
         const file = imagesToOptimize[i];
-        const { blob } = await optimizeImageFile(file);
+        try {
+          const { blob } = await optimizeImageFile(file);
 
-        const baseName = file.name.replace(/\.[^.]+$/, "");
-        zip.file(`${baseName}.jpg`, blob);
+          const baseName = file.name.replace(/\.[^.]+$/, "");
+          zip.file(`${baseName}.jpg`, blob);
 
-        totalBefore += file.size;
-        totalAfter += blob.size;
+          totalBefore += file.size;
+          totalAfter += blob.size;
+          count++;
+        } catch (err) {
+          console.error(`Failed to optimize ${file.name}:`, err);
+          failed.push(file.name);
+        }
         setOptimizeProgress(i + 1);
       }
 
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-      const inputFolderName = getInputFolderName(imagesToOptimize[0]);
-      const zipFilename = `${inputFolderName}.zip`;
-      saveAs(zipBlob, zipFilename);
+      if (count > 0) {
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        const inputFolderName = getInputFolderName(imagesToOptimize[0]);
+        const zipFilename = `${inputFolderName}.zip`;
+        saveAs(zipBlob, zipFilename);
 
-      setOptimizeSummary({
-        count: imagesToOptimize.length,
-        totalBefore,
-        totalAfter,
-        zipFilename,
-      });
+        setOptimizeSummary({ count, totalBefore, totalAfter, zipFilename, failed });
+      } else {
+        alert(`Không tối ưu được ảnh nào. Các ảnh bị lỗi:\n${failed.join("\n")}`);
+      }
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -422,6 +429,24 @@ export default function V2Page() {
                 </Typography>
               </Paper>
             )}
+
+            {optimizeSummary?.failed.length > 0 && (
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: "warning.50",
+                }}
+              >
+                <Typography variant="body2" fontWeight={600}>
+                  Bỏ qua {optimizeSummary.failed.length} ảnh không đọc được (file hỏng hoặc định dạng không hỗ trợ):
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
+                  {optimizeSummary.failed.join("\n")}
+                </Typography>
+              </Paper>
+            )}
           </Stack>
         );
 
@@ -616,10 +641,34 @@ export default function V2Page() {
     return folderName || "anh-toi-uu";
   }
 
-  async function optimizeImageFile(file) {
-    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  // Some files createImageBitmap refuses to decode (e.g. CMYK JPEGs from
+  // Photoshop, or odd JFIF variants) even though a plain <img> element handles
+  // them fine, since it goes through the browser's regular image pipeline.
+  async function loadViaImgElement(file) {
+    const url = URL.createObjectURL(file);
+    try {
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error("Trình duyệt không đọc được ảnh này"));
+        img.src = url;
+      });
+      return img;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
 
-    let { width, height } = bitmap;
+  async function optimizeImageFile(file) {
+    let source;
+    try {
+      source = await createImageBitmap(file, { imageOrientation: "from-image" });
+    } catch {
+      source = await loadViaImgElement(file);
+    }
+
+    let width = source.width ?? source.naturalWidth;
+    let height = source.height ?? source.naturalHeight;
     if (width > OPTIMIZE_MAX_DIMENSION || height > OPTIMIZE_MAX_DIMENSION) {
       const scale = OPTIMIZE_MAX_DIMENSION / Math.max(width, height);
       width = Math.round(width * scale);
@@ -631,8 +680,8 @@ export default function V2Page() {
     canvas.height = height;
 
     const ctx = canvas.getContext("2d");
-    ctx.drawImage(bitmap, 0, 0, width, height);
-    bitmap.close?.();
+    ctx.drawImage(source, 0, 0, width, height);
+    source.close?.();
 
     const blob = await new Promise((resolve) =>
       canvas.toBlob(resolve, "image/jpeg", OPTIMIZE_JPEG_QUALITY),
