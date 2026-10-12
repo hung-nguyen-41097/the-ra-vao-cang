@@ -1,14 +1,12 @@
-# Hệ thống tạo & in thẻ ra vào cảng PSB
+# PSB Tools
 
-Ứng dụng React (Vite) dùng để tạo hàng loạt thẻ ra/vào cảng (xe máy & ô tô) dưới dạng file Word (`.docx`), tự động sinh mã QR và chèn ảnh thẻ/chân dung vào từng thẻ theo mẫu (template) có sẵn.
+Bộ công cụ nội bộ PSB (React + Vite), chạy hoàn toàn phía client. Gồm các trang:
 
-Ứng dụng có nhiều trang chạy song song trên cùng một site:
-
-| Phiên bản | Route | Trạng thái |
+| Trang | Route | Mô tả |
 | --- | --- | --- |
-| v1 | `/` | Bản đầu tiên, nhập dữ liệu thủ công dạng text |
-| **v2** | **`/the-ra-vao-v2`** | **Bản hiện tại, nhập trực tiếp từ file Excel — khuyến nghị sử dụng** |
+| Thẻ ra vào cảng | `/the-ra-vao-cang` (mặc định, `/` chuyển hướng tới đây) | Tạo hàng loạt thẻ ra/vào cảng (xe máy & ô tô) dạng file Word từ file Excel, tự sinh mã QR và chèn ảnh chân dung |
 | In vé xe | `/in-ve-xe` | Ghép nhiều file PDF (vé xe, mỗi file 1 trang) vào một file Word, 8 vé/trang |
+| Phân ca | `/phan-ca` | Xếp lịch phân ca |
 
 ## Yêu cầu
 
@@ -25,11 +23,11 @@ yarn preview   # preview bản build
 yarn lint      # kiểm tra lint
 ```
 
-Sau khi chạy `yarn dev`, mở trình duyệt tới `/the-ra-vao-v2` để dùng bản wizard nhập từ Excel.
+Sau khi chạy `yarn dev`, mở trình duyệt tới `/` (tự chuyển tới `/the-ra-vao-cang`).
 
-## Phiên bản v2 (`/the-ra-vao-v2`) — quy trình 4 bước
+## Thẻ ra vào cảng (`/the-ra-vao-cang`) — quy trình 4 bước
 
-V2 là một wizard (Stepper) gồm 4 bước, cho phép nhập dữ liệu trực tiếp từ file Excel thay vì gõ tay từng dòng như v1.
+Wizard (Stepper) gồm 4 bước, nhập dữ liệu trực tiếp từ file Excel.
 
 ### Bước 1 — Nhập file Excel
 
@@ -69,11 +67,7 @@ Bước này được bỏ qua với xe ô tô (mẫu thẻ ô tô không có �
 
 ### Mã QR
 
-Với mỗi thẻ, ứng dụng gọi API `api.qrserver.com` để sinh ảnh QR từ nội dung cột QR trong Excel, sau đó nhúng trực tiếp vào file Word (không cần link ảnh QR có sẵn như v1).
-
-## Phiên bản v1 (`/`)
-
-Bản đầu tiên: nhập dữ liệu thủ công bằng cách dán từng dòng text (các trường phân tách bởi dấu `|`), ảnh chân dung/QR lấy qua link Google Drive thay vì thư mục ảnh cục bộ. Vẫn được giữ lại để tham khảo/đối chiếu, nhưng không còn được phát triển tiếp — mọi tính năng mới nên hướng tới v2.
+Với mỗi thẻ, ứng dụng gọi API `api.qrserver.com` để sinh ảnh QR từ nội dung cột QR trong Excel, sau đó nhúng trực tiếp vào file Word.
 
 ## Trang In vé xe (`/in-ve-xe`)
 
@@ -83,12 +77,12 @@ Chọn một thư mục chứa các file PDF vé xe (mỗi file được coi là
 
 ```
 src/
-  App.jsx         # V1 — nhập liệu thủ công
-  V2Page.jsx      # V2 — wizard nhập từ Excel (khuyến nghị)
-  InVeXePage.jsx  # In vé xe — ghép PDF thành file Word 8 vé/trang
-  main.jsx        # Router: "/" -> App, "/the-ra-vao-v2" -> V2Page, "/in-ve-xe" -> InVeXePage
+  TheRaVaoCang.jsx  # Thẻ ra vào cảng — wizard nhập từ Excel
+  InVeXePage.jsx    # In vé xe — ghép PDF thành file Word 8 vé/trang
+  PhanCaPage.jsx    # Phân ca
+  main.jsx          # Router: "/" -> "/the-ra-vao-cang", "/in-ve-xe", "/phan-ca"
 public/
-  Mau_The_Ra_Vao_PSB.xlsx     # File mẫu Excel cho v2
+  Mau_The_Ra_Vao_PSB.xlsx     # File mẫu Excel cho trang thẻ ra vào
   template-motorbike.docx     # Template thẻ xe máy
   template-car.docx           # Template thẻ ô tô
 ```
@@ -96,7 +90,7 @@ public/
 ## Công nghệ sử dụng
 
 - React 19 + React Router + Vite
-- MUI (Material UI) cho giao diện v2 và trang In vé xe
+- MUI (Material UI) cho giao diện
 - `xlsx` — đọc file Excel
 - `docxtemplater` + `pizzip` + `docxtemplater-image-module-free` — render dữ liệu (kèm ảnh) vào template Word
 - `pdfjs-dist` — render trang PDF thành ảnh trong trình duyệt (trang In vé xe)

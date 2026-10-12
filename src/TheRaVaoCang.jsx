@@ -110,7 +110,7 @@ const VEHICLE_CONFIG = {
   },
 };
 
-export default function V2Page() {
+export default function TheRaVaoCang() {
   const [activeStep, setActiveStep] = React.useState(0);
   const maxSteps = steps.length;
 
