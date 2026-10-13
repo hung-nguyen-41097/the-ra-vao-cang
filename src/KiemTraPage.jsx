@@ -17,6 +17,7 @@ import TableRow from "@mui/material/TableRow";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import DownloadIcon from "@mui/icons-material/Download";
 import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
@@ -474,6 +475,17 @@ export default function KiemTraPage() {
             >
               Chọn file Excel (Mau_The_Ra_Vao_PSB)
               <input hidden type="file" accept=".xlsx,.xls" onChange={handleExcelChange} />
+            </Button>
+
+            <Button
+              component="a"
+              href="/Mau_Kiem_Tra_PSB.xlsx"
+              download="Mau_Kiem_Tra_PSB.xlsx"
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              sx={{ alignSelf: "flex-start" }}
+            >
+              Tải file Excel mẫu
             </Button>
 
             {excelFile && (

@@ -38,6 +38,14 @@ const IMAGE_EXTENSIONS = /\.(png|jpe?g|jfif|webp|bmp|gif)$/i;
 const OPTIMIZE_MAX_DIMENSION = 800;
 const OPTIMIZE_JPEG_QUALITY = 0.8;
 
+// Normalizes the "STT. Họ tên" prefix: "1.Nguyễn Văn A", "1Nguyễn Văn A",
+// "1 , Nguyễn Văn A" -> "1. Nguyễn Văn A". Names not starting with a number
+// followed by a letter are left untouched.
+function fixImageBaseName(baseName) {
+  const match = baseName.match(/^(\d+)[^\p{L}\d]*(\p{L}.*)$/u);
+  return match ? `${match[1]}. ${match[2]}` : baseName;
+}
+
 const steps = [
   {
     label: "Tối ưu ảnh",
@@ -198,13 +206,18 @@ export default function TheRaVaoCang() {
       let totalAfter = 0;
       let count = 0;
       const failed = [];
+      const renamed = [];
 
       for (let i = 0; i < imagesToOptimize.length; i++) {
         const file = imagesToOptimize[i];
         try {
           const { blob } = await optimizeImageFile(file);
 
-          const baseName = file.name.replace(/\.[^.]+$/, "");
+          const originalBaseName = file.name.replace(/\.[^.]+$/, "");
+          const baseName = fixImageBaseName(originalBaseName);
+          if (baseName !== originalBaseName) {
+            renamed.push({ from: file.name, to: `${baseName}.jpg` });
+          }
           zip.file(`${baseName}.jpg`, blob);
 
           totalBefore += file.size;
@@ -223,7 +236,14 @@ export default function TheRaVaoCang() {
         const zipFilename = `${inputFolderName}.zip`;
         saveAs(zipBlob, zipFilename);
 
-        setOptimizeSummary({ count, totalBefore, totalAfter, zipFilename, failed });
+        setOptimizeSummary({
+          count,
+          totalBefore,
+          totalAfter,
+          zipFilename,
+          failed,
+          renamed,
+        });
       } else {
         alert(`Không tối ưu được ảnh nào. Các ảnh bị lỗi:\n${failed.join("\n")}`);
       }
@@ -426,6 +446,26 @@ export default function TheRaVaoCang() {
                     (1 - optimizeSummary.totalAfter / optimizeSummary.totalBefore)
                   ).toFixed(1)}
                   %). File {optimizeSummary.zipFilename} đã được tải xuống.
+                </Typography>
+              </Paper>
+            )}
+
+            {optimizeSummary?.renamed.length > 0 && (
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: "info.50",
+                }}
+              >
+                <Typography variant="body2" fontWeight={600}>
+                  Đã sửa tên {optimizeSummary.renamed.length} ảnh:
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-line" }}>
+                  {optimizeSummary.renamed
+                    .map(({ from, to }) => `${from} -> ${to}`)
+                    .join("\n")}
                 </Typography>
               </Paper>
             )}
@@ -839,12 +879,14 @@ export default function TheRaVaoCang() {
         elevation={4}
         sx={{
           borderRadius: 3,
-          height: 400, // fixed height
+          minHeight: 400, // grows when step content (e.g. result lists) is taller
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <CardContent
           sx={{
-            height: "100%",
+            flex: 1,
             display: "flex",
             flexDirection: "column",
           }}
